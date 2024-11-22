@@ -24,7 +24,7 @@ export const createS3Storage = (): CloudStorage => {
       const command = new PutObjectCommand({
         Bucket: env.S3_BUCKET,
         Key: `backuper/${file.name}`,
-        // ContentType: file.type,
+        ContentType: file.type,
         Body: Buffer.from(await file.arrayBuffer()),
       });
 
