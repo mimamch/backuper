@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Database {
+  POSTGRES
+
+  @@map("databases")
+}
+
+enum Storage {
+  S3
+
+  @@map("storages")
+}
+
+model BackupPlan {
+  id          String   @id @default(cuid())
+  name        String
+  path        String
+  schedule    String
+  database    Database
+  storage     Storage
+  active      Boolean  @default(false)
+  max_backups Int      @default(10)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  backup Backup[]
+
+  @@map("backup_plans")
+}
+
+model Backup {
+  id      String     @id @default(cuid())
+  plan_id String
+  plan    BackupPlan @relation(fields: [plan_id], references: [id])
+  path    String
+  url     String
+  size    BigInt
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@map("backups")
+}
