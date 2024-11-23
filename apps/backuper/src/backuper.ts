@@ -48,7 +48,7 @@ const storages: Record<S, CloudStorage> = {
   S3: createS3Storage(),
 };
 
-const backup = async (plan: BackupPlan) => {
+export const backup = async (plan: BackupPlan) => {
   try {
     console.log(`Backing up plan ${plan.id} - ${plan.name}`);
 
