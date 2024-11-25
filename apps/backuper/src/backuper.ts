@@ -1,10 +1,12 @@
-import { BackupPlan, Storage as S } from "@prisma/client";
+import { BackupPlan, Database, Storage as S } from "@prisma/client";
 import cron from "node-cron";
 import { CloudStorage } from "./storages";
 import { createS3Storage } from "./storages/s3";
 import { zipDir } from "./archiver/zip";
 import fs, { existsSync } from "fs";
 import { prisma } from "./prisma";
+import { DatabaseHandler } from "./handler";
+import { dirHandler } from "./handler/dir";
 
 const getObjectSha = (obj: Record<any, any>) => {
   return JSON.stringify(obj);
@@ -48,12 +50,25 @@ const storages: Record<S, CloudStorage> = {
   S3: createS3Storage(),
 };
 
+const databases: Record<Database, DatabaseHandler> = {
+  DIR: dirHandler(),
+
+  POSTGRES: {
+    backup() {
+      throw new Error("Not implemented");
+    },
+  },
+};
+
 export const backup = async (plan: BackupPlan) => {
   try {
     console.log(`Backing up plan ${plan.id} - ${plan.name}`);
 
     const storage = storages[plan.storage];
-    const zipPath = await zipDir(plan.path, `${plan.name}.zip`);
+    const handler = databases[plan.database];
+    const { path: zipPath } = await handler.backup({
+      dirPath: plan.path,
+    });
 
     const zip = new File(
       [fs.readFileSync(zipPath)],

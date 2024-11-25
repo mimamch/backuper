@@ -14,7 +14,8 @@ datasource db {
 }
 
 enum Database {
-  POSTGRES
+  DIR // Directory backup
+  POSTGRES // Postgres backup
 
   @@map("databases")
 }
