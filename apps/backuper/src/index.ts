@@ -9,8 +9,6 @@ if (!fs.existsSync("./tmp")) {
 const main = async () => {
   const plans = await prisma.backupPlan.findMany({});
 
-  console.log(plans);
-
   for (const plan of plans) {
     await backuper(plan);
   }
