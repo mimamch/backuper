@@ -1,0 +1,19 @@
+storage:
+  s3:
+    access_key:
+    secret_key:
+    endpoint:
+    bucket:
+
+plans:
+  - name: postgres
+    active: true
+    schedule: "0 2 * * *" # every day at 2am
+    max_backups: 1
+    type: postgresql
+    postgresql:
+      host: localhost
+      port: 5432
+      username: postgres
+      password: postgres
+      database: postgres

@@ -26,3 +26,35 @@ export const zipDir = async (path: string, name: string): Promise<string> => {
     archive.finalize();
   });
 };
+
+export const zipFiles = async (
+  files: { path: string; name: string }[],
+  zipName: string
+): Promise<string> => {
+  const archive = archiver("zip", {});
+  const output = fs.createWriteStream(`tmp/${zipName}`);
+
+  return new Promise(async (resolve, reject) => {
+    archive.on("error", function (err) {
+      reject(err);
+    });
+
+    output.on("close", function () {
+      resolve(`tmp/${zipName}`);
+    });
+
+    archive.pipe(output);
+
+    for (const file of files) {
+      const isExist = fs.existsSync(file.path);
+      if (!isExist) {
+        throw new Error(`File ${file.path} not found`);
+      }
+      archive.file(file.path, {
+        name: file.name,
+      });
+    }
+
+    archive.finalize();
+  });
+};

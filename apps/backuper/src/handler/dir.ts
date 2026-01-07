@@ -1,11 +1,15 @@
-import { DatabaseHandler } from ".";
+import { BackupHandlerProps, DatabaseHandler } from ".";
 import { zipDir } from "../archiver/zip";
 
 export const dirHandler = (): DatabaseHandler => {
   return {
-    backup: async (props: { dirPath: string }) => {
+    backup: async (props: BackupHandlerProps) => {
+      if (!props.dir) {
+        throw new Error("Directory path is required for dir backup");
+      }
+
       const zipPath = await zipDir(
-        props.dirPath,
+        props.dir.path,
         `${new Date().toISOString()}.zip`
       );
 
