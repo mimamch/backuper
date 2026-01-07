@@ -3,3 +3,4 @@
 ### Supported Databases
 
 - PostgreSQL
+- Directory Backup
