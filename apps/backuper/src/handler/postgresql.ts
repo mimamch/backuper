@@ -15,9 +15,9 @@ export const postgresqlHandler = (): DatabaseHandler => {
 
       // run pg_dump to dump the database to a temporary directory before zipping it
       // run via a child process
-      const dumpFilePath = `tmp/${new Date().toISOString()}.sql`;
 
       const { host, port, username, password, database } = props.postgresql;
+      const dumpFilePath = `tmp/${database}-${new Date().toISOString()}.dump`;
 
       await (async () => {
         return new Promise<string>((resolve, reject) => {
@@ -29,8 +29,10 @@ export const postgresqlHandler = (): DatabaseHandler => {
             port.toString(),
             "-U",
             username,
-            "-d",
+            "-Fc",
             database,
+            "-f",
+            dumpFilePath,
           ];
 
           const env = { PGPASSWORD: password };
@@ -61,7 +63,7 @@ export const postgresqlHandler = (): DatabaseHandler => {
       const zipPath = await zipFiles(
         [
           {
-            name: `${database}.sql`,
+            name: dumpFilePath.split("/").pop() || "database.dump",
             path: dumpFilePath,
           },
         ],
@@ -69,7 +71,7 @@ export const postgresqlHandler = (): DatabaseHandler => {
       );
 
       // remove the temporary dump file
-      unlinkSync(dumpFilePath);
+      // unlinkSync(dumpFilePath);
 
       return {
         path: zipPath,
