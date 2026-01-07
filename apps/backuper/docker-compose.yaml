@@ -1,0 +1,7 @@
+services:
+  backuper:
+    container_name: backuper
+    image: mimamch/backuper:latest
+    restart: unless-stopped
+    volumes:
+      - ./config.yaml:/app/config.yaml
