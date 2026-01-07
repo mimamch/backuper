@@ -3,16 +3,17 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { env } from "../env";
 import { CloudStorage } from ".";
+import { getConfigFromYaml } from "../yaml";
 
 export const createS3Storage = (): CloudStorage => {
+  const config = getConfigFromYaml().storage.s3;
   const awsClient = new S3Client({
-    region: env.S3_REGION,
-    endpoint: env.S3_ENDPOINT,
+    region: config.region,
+    endpoint: config.endpoint,
     credentials: {
-      accessKeyId: env.S3_ACCESS_KEY,
-      secretAccessKey: env.S3_SECRET_KEY,
+      accessKeyId: config.access_key,
+      secretAccessKey: config.secret_key,
     },
   });
 
@@ -22,7 +23,7 @@ export const createS3Storage = (): CloudStorage => {
      */
     store: async (file: File) => {
       const command = new PutObjectCommand({
-        Bucket: env.S3_BUCKET,
+        Bucket: config.bucket,
         Key: `backuper/${file.name}`,
         ContentType: file.type,
         Body: Buffer.from(await file.arrayBuffer()),
@@ -31,7 +32,7 @@ export const createS3Storage = (): CloudStorage => {
       await awsClient.send(command);
 
       return {
-        url: env.S3_INDEX_BASE_URL + `/backuper/${file.name}`,
+        url: `backuper/${file.name}`,
         path: `backuper/${file.name}`,
       };
     },
@@ -41,7 +42,7 @@ export const createS3Storage = (): CloudStorage => {
      */
     delete: async (key: string) => {
       const command = new DeleteObjectCommand({
-        Bucket: env.S3_BUCKET,
+        Bucket: config.bucket,
         Key: key,
       });
 

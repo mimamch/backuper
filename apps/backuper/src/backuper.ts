@@ -1,12 +1,12 @@
-import { BackupPlan, Database, Storage as S } from "@prisma/client";
 import cron from "node-cron";
-import { CloudStorage } from "./storages";
-import { createS3Storage } from "./storages/s3";
-import { zipDir } from "./archiver/zip";
+import { storages } from "./storages";
 import fs, { existsSync } from "fs";
-import { prisma } from "./prisma";
 import { DatabaseHandler } from "./handler";
 import { dirHandler } from "./handler/dir";
+import { BackupPlan } from "./types/plan";
+import { Database } from "./types/database";
+import { checkAndClearOnReachMaxBackups, onBackupDone } from "./audit";
+import { postgresqlHandler } from "./handler/postgresql";
 
 const getObjectSha = (obj: Record<any, any>) => {
   return JSON.stringify(obj);
@@ -46,18 +46,10 @@ export const backuper = async (plan: BackupPlan) => {
   });
 };
 
-const storages: Record<S, CloudStorage> = {
-  S3: createS3Storage(),
-};
-
 const databases: Record<Database, DatabaseHandler> = {
-  DIR: dirHandler(),
+  dir: dirHandler(),
 
-  POSTGRES: {
-    backup() {
-      throw new Error("Not implemented");
-    },
-  },
+  postgresql: postgresqlHandler(),
 };
 
 export const backup = async (plan: BackupPlan) => {
@@ -66,12 +58,18 @@ export const backup = async (plan: BackupPlan) => {
 
     const storage = storages[plan.storage];
     const handler = databases[plan.database];
+
+    if (!handler) {
+      throw new Error("Unsupported database type or missing configuration");
+    }
+
     const { path: zipPath } = await handler.backup({
-      dirPath: plan.path,
+      dir: plan.dir,
+      postgresql: plan.postgresql,
     });
 
     const zip = new File(
-      [fs.readFileSync(zipPath)],
+      [fs.readFileSync(zipPath) as unknown as Blob],
       `${plan.name}-${new Date().toISOString()}.zip`,
       {
         type: "application/zip",
@@ -79,13 +77,10 @@ export const backup = async (plan: BackupPlan) => {
     );
     const response = await storage.store(zip);
 
-    await prisma.backup.create({
-      data: {
-        plan_id: plan.id,
-        path: response.path,
-        url: response.url,
-        size: zip.size,
-      },
+    await onBackupDone(plan, "success", {
+      path: response.path,
+      size: zip.size,
+      storage: plan.storage,
     });
 
     existsSync(zipPath) && fs.unlinkSync(zipPath);
@@ -96,35 +91,4 @@ export const backup = async (plan: BackupPlan) => {
   } catch (error) {
     console.error(`Error backing up plan ${plan.id}:`, error);
   }
-};
-
-const checkAndClearOnReachMaxBackups = async (plan: BackupPlan) => {
-  const backups = await prisma.backup.findMany({
-    where: {
-      plan_id: plan.id,
-    },
-    orderBy: [
-      {
-        created_at: "desc",
-      },
-    ],
-  });
-
-  if (backups.length <= plan.max_backups) {
-    return;
-  }
-
-  const toDelete = backups.slice(plan.max_backups);
-
-  for (const backup of toDelete) {
-    const storage = storages[plan.storage];
-    await storage.delete(backup.path);
-    await prisma.backup.delete({
-      where: {
-        id: backup.id,
-      },
-    });
-  }
-
-  console.log(`Deleted ${toDelete.length} backups for plan ${plan.id}`);
 };
