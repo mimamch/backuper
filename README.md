@@ -22,78 +22,65 @@ Ensure you have the following installed on your machine:
 
 ### Installation & Deployment
 
-1. **Clone the repository:**
+1. **Create a `docker-compose.yaml` file:**
 
-   ```bash
-   git clone https://github.com/mimamch/backuper.git
-   cd backuper/apps/backuper
+   ```yaml
+   services:
+     backuper:
+       container_name: backuper
+       image: mimamch/backuper:latest
+       restart: unless-stopped
+       volumes:
+         - ./config.yaml:/app/config.yaml
+         - ./logs:/app/logs
+
+         # (uncomment code below if you use type: dir)
+         # - /path/on/your/host:/app/to-backup/assets
    ```
 
-2. **Prepare your configuration:**
-   Copy the example configuration file and adapt it to your credentials.
+2. **Create a `config.yaml` file:**
 
-   ```bash
-   cp config.example.yaml config.yaml
+   Paste and configure your S3 credentials and backup plans.
+
+   ```yaml
+   storage:
+     s3:
+       access_key: "your_s3_access_key"
+       secret_key: "your_s3_secret_key"
+       endpoint: "https://s3.your-region.amazonaws.com"
+       bucket: "your-backup-bucket"
+
+   plans:
+     # 1. PostgreSQL Backup Plan Example
+     - name: production-postgres
+       active: true
+       schedule: "0 2 * * *" # Runs every day at 2:00 AM
+       max_backups: 5 # Keeps the 5 most recent backups, deletes older ones
+       type: postgresql
+       postgresql:
+         host: db-host-or-ip
+         port: 5432
+         username: postgres
+         password: your-password
+         database: my_app_db
+
+     # 2. Directory Backup Plan Example
+     - name: application-assets
+       active: true
+       schedule: "0 3 * * 0" # Runs every Sunday at 3:00 AM
+       max_backups: 3
+       type: dir
+       dir:
+         path: "/app/to-backup/assets" # Path mapped via volumes in docker-compose.yaml
    ```
 
 3. **Start the service:**
-   Run the application in the background using Docker Compose.
+
+   Run the application in the background. It will automatically read your `config.yaml`.
+
    ```bash
    docker compose up -d
    ```
-
-## Configuration (`config.yaml`)
-
-The `config.yaml` file stores the credentials to your central storage backend and delineates all your backup "plans."
-
-### Storage Block
-
-Provide the credentials for your chosen S3-compatible service.
-
-```yaml
-storage:
-  s3:
-    access_key: "your_s3_access_key"
-    secret_key: "your_s3_secret_key"
-    endpoint: "https://s3.your-region.amazonaws.com"
-    bucket: "your-backup-bucket"
-```
-
-### Plans Block
-
-You can define multiple backup plans, which will run independently side-by-side.
-
-#### 1. PostgreSQL Backup Plan
-
-```yaml
-plans:
-  - name: production-postgres
-    active: true
-    schedule: "0 2 * * *" # Runs every day at 2:00 AM
-    max_backups: 5 # Keeps the 5 most recent backups, deletes older ones
-    type: postgresql
-    postgresql:
-      host: db-host-or-ip
-      port: 5432
-      username: postgres
-      password: your-password
-      database: my_app_db
-```
-
-#### 2. Directory Backup Plan
-
-_Note for Docker Users: Make sure to map/mount the directory you want to back up into the Docker container via `volumes` in your `docker-compose.yaml` file so the app can access it._
-
-```yaml
-plans:
-  - name: application-assets
-    active: true
-    schedule: "0 3 * * 0" # Runs every Sunday at 3:00 AM
-    max_backups: 3
-    type: dir
-    dir:
-      path: "/app/to-backup/assets" # Path to the mapped folder inside the container
-```
 
 ## Logs and Audits
 
