@@ -6,10 +6,41 @@ import which from "which";
 
 export const postgresqlHandler = (): DatabaseHandler => {
   return {
+    test: async (props: BackupHandlerProps) => {
+      const postgresqlConfig = props.postgresql;
+      if (!postgresqlConfig) {
+        throw new Error(
+          "PostgreSQL configuration is required for PostgreSQL backup",
+        );
+      }
+
+      const { host, port, username } = postgresqlConfig;
+      if (!props.postgresql) {
+        throw new Error(
+          "PostgreSQL configuration is required for PostgreSQL backup",
+        );
+      }
+      return new Promise<boolean>((resolve) => {
+        try {
+          const cmd = which.sync("pg_isready");
+          const args = ["-h", host, "-p", port.toString(), "-U", username];
+
+          const process = spawn(cmd, args);
+          process.on("close", (code) => {
+            resolve(code === 0);
+          });
+          process.on("error", () => {
+            resolve(false);
+          });
+        } catch (e) {
+          resolve(false);
+        }
+      });
+    },
     backup: async (props: BackupHandlerProps) => {
       if (!props.postgresql) {
         throw new Error(
-          "PostgreSQL configuration is required for PostgreSQL backup"
+          "PostgreSQL configuration is required for PostgreSQL backup",
         );
       }
 
@@ -67,7 +98,7 @@ export const postgresqlHandler = (): DatabaseHandler => {
             path: dumpFilePath,
           },
         ],
-        `zip-${new Date().toISOString()}.zip`
+        `zip-${new Date().toISOString()}.zip`,
       );
 
       // remove the temporary dump file

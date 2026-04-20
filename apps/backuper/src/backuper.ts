@@ -20,7 +20,18 @@ const runningBackups = new Map<
   }
 >();
 
+const databases: Record<Database, DatabaseHandler> = {
+  dir: dirHandler(),
+  postgresql: postgresqlHandler(),
+};
+
 export const backuper = async (plan: BackupPlan) => {
+  const handler = databases[plan.database];
+  if (!handler) {
+    console.error(`Unsupported database type for plan ${plan.id}`);
+    return;
+  }
+
   const existing = runningBackups.get(plan.id);
   if (existing) {
     if (existing.sha == getObjectSha(plan)) {
@@ -38,18 +49,24 @@ export const backuper = async (plan: BackupPlan) => {
     return;
   }
 
+  const isConfigValid = await handler.test({
+    dir: plan.dir,
+    postgresql: plan.postgresql,
+  });
+
+  if (!isConfigValid) {
+    console.error(
+      `Invalid configuration or connection failed for plan ${plan.id}, skipping backup`,
+    );
+    return;
+  }
+
   runningBackups.set(plan.id, {
     cron: cron.schedule(plan.schedule, async () => {
       backup(plan);
     }),
     sha: getObjectSha(plan),
   });
-};
-
-const databases: Record<Database, DatabaseHandler> = {
-  dir: dirHandler(),
-
-  postgresql: postgresqlHandler(),
 };
 
 export const backup = async (plan: BackupPlan) => {
@@ -73,7 +90,7 @@ export const backup = async (plan: BackupPlan) => {
       `${plan.name}-${new Date().toISOString()}.zip`,
       {
         type: "application/zip",
-      }
+      },
     );
     const response = await storage.store(zip);
 

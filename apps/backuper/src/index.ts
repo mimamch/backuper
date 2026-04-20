@@ -11,6 +11,9 @@ if (!fs.existsSync("./logs")) {
 
 const main = async () => {
   const config = getConfigFromYaml();
+  console.log(
+    `[BACKUPER]: ${config.plans.filter((c) => c.active).length} active plans`,
+  );
 
   for (const plan of config.plans) {
     await backuper({

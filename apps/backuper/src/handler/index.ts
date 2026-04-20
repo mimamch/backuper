@@ -16,4 +16,5 @@ export type DatabaseHandler = {
   backup: (props: BackupHandlerProps) => Promise<{
     path: string;
   }>;
+  test: (props: BackupHandlerProps) => Promise<boolean>;
 };
