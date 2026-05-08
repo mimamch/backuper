@@ -48,6 +48,7 @@ Ensure you have the following installed on your machine:
        access_key: "your_s3_access_key"
        secret_key: "your_s3_secret_key"
        endpoint: "https://s3.your-region.amazonaws.com"
+       region: "auto"
        bucket: "your-backup-bucket"
 
    plans:
