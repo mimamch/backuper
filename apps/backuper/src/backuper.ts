@@ -85,18 +85,13 @@ export const backup = async (plan: BackupPlan) => {
       postgresql: plan.postgresql,
     });
 
-    const zip = new File(
-      [fs.readFileSync(zipPath) as unknown as Blob],
-      `${plan.name}-${new Date().toISOString()}.zip`,
-      {
-        type: "application/zip",
-      },
-    );
-    const response = await storage.store(zip);
+    const fileName = `${plan.name}-${new Date().toISOString()}.zip`;
+    const fileSize = fs.statSync(zipPath).size;
+    const response = await storage.store(zipPath, fileName);
 
     await onBackupDone(plan, "success", {
       path: response.path,
-      size: zip.size,
+      size: fileSize,
       storage: plan.storage,
     });
 

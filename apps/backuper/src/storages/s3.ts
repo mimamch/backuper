@@ -1,8 +1,6 @@
-import {
-  DeleteObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import fs from "fs";
 import { CloudStorage } from ".";
 import { getConfigFromYaml } from "../yaml";
 
@@ -18,22 +16,23 @@ export const createS3Storage = (): CloudStorage => {
   });
 
   const storage: CloudStorage = {
-    /**
-     * Store file to AWS S3
-     */
-    store: async (file: File) => {
-      const command = new PutObjectCommand({
-        Bucket: config.bucket,
-        Key: `backuper/${file.name}`,
-        ContentType: file.type,
-        Body: Buffer.from(await file.arrayBuffer()),
+    store: async (filePath: string, fileName: string) => {
+      const key = `backuper/${fileName}`;
+      const upload = new Upload({
+        client: awsClient,
+        params: {
+          Bucket: config.bucket,
+          Key: key,
+          ContentType: "application/zip",
+          Body: fs.createReadStream(filePath),
+        },
       });
 
-      await awsClient.send(command);
+      await upload.done();
 
       return {
-        url: `backuper/${file.name}`,
-        path: `backuper/${file.name}`,
+        url: key,
+        path: key,
       };
     },
 

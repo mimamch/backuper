@@ -1,7 +1,7 @@
 import { createS3Storage } from "./s3";
 
 export type CloudStorage = {
-  store: (file: File) => Promise<{
+  store: (filePath: string, fileName: string) => Promise<{
     url: string;
     path: string;
   }>;
