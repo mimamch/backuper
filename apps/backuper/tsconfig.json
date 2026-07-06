@@ -1,21 +1,24 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "strict": true,
-    "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "declaration": true,
-    "declarationMap": true,
     "esModuleInterop": true,
     "incremental": false,
     "isolatedModules": true,
     "lib": ["es2022", "DOM", "DOM.Iterable"],
     "moduleDetection": "force",
     "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    "rootDir": "./src"
   },
   "exclude": ["node_modules/**/*"]
 }

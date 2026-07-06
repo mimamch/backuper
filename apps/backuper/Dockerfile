@@ -1,4 +1,22 @@
-FROM node:22-slim AS runtime
+FROM node:22-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
+RUN corepack enable
+
+
+FROM base AS build
+WORKDIR /app
+COPY package.json ./
+RUN pnpm install
+COPY . .
+RUN pnpm run build
+
+
+FROM base AS production
+
+WORKDIR /app
+COPY --from=build /app/dist /app/dist
 
 # install pg_dump
 RUN apt-get update && apt-get install -y \
@@ -14,12 +32,6 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-COPY . /app
-
-RUN ls -la /app
-RUN npm install
-
 ENV NODE_ENV=production
 
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]

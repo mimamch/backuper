@@ -60,9 +60,15 @@ importers:
       '@types/which':
         specifier: ^3.0.4
         version: 3.0.4
+      '@vercel/ncc':
+        specifier: ^0.44.1
+        version: 0.44.1
       tsx:
         specifier: ^4.7.1
         version: 4.19.2
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 
@@ -398,6 +404,10 @@ packages:
   '@types/which@3.0.4':
     resolution: {integrity: sha512-liyfuo/106JdlgSchJzXEQCVArk0CvevqPote8F8HgWgJ3dRCcTHgJIsLDuee0kxk/mhbInzIZk3QWSZJ8R+2w==}
 
+  '@vercel/ncc@0.44.1':
+    resolution: {integrity: sha512-cUjIE5P2YY1n+Kt9rFIazMMpGoPn1Fic04rOmTkElMkiDP5oszGfERMpo2shVkFKDL7rVppdM2pqJKC59shQWQ==}
+    hasBin: true
+
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
     engines: {node: '>=6.5'}
@@ -695,6 +705,11 @@ packages:
   tsx@4.19.2:
     resolution: {integrity: sha512-pOUl6Vo2LUq/bSa8S5q7b91cgNSjctn9ugq/+Mvow99qW6x/UZYwzxy/3NmqoT66eHYfCVvFvACC58UBPFf28g==}
     engines: {node: '>=18.0.0'}
+    hasBin: true
+
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
+    engines: {node: '>=14.17'}
     hasBin: true
 
   undici-types@6.19.8:
@@ -1144,6 +1159,8 @@ snapshots:
 
   '@types/which@3.0.4': {}
 
+  '@vercel/ncc@0.44.1': {}
+
   abort-controller@3.0.0:
     dependencies:
       event-target-shim: 5.0.1
@@ -1464,6 +1481,8 @@ snapshots:
       get-tsconfig: 4.8.1
     optionalDependencies:
       fsevents: 2.3.3
+
+  typescript@6.0.3: {}
 
   undici-types@6.19.8: {}
 
