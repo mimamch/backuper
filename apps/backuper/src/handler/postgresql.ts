@@ -102,7 +102,7 @@ export const postgresqlHandler = (): DatabaseHandler => {
       );
 
       // remove the temporary dump file
-      // unlinkSync(dumpFilePath);
+      unlinkSync(dumpFilePath);
 
       return {
         path: zipPath,
