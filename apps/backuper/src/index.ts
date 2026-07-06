@@ -9,11 +9,8 @@ if (!fs.existsSync("./logs")) {
   fs.mkdirSync("./logs");
 }
 
-const main = async () => {
+const refresh = async () => {
   const config = getConfigFromYaml();
-  console.log(
-    `[BACKUPER]: ${config.plans.filter((c) => c.active).length} active plans`,
-  );
 
   for (const plan of config.plans) {
     await backuper({
@@ -31,5 +28,10 @@ const main = async () => {
   }
 };
 
-setInterval(main, 1000 * 60);
+const main = async () => {
+  console.log(`Starting backuper at ${new Date().toISOString()}`);
+  refresh();
+  setInterval(refresh, 1000 * 60);
+};
+
 main();
